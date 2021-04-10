@@ -86,7 +86,7 @@
 }
 #game-board > table .cell.barrier > .disc
 {
-  background: rgb(255, 0, 0);
+  background: rgb(255, 160, 0);
   border-radius: 0em;
 }
 #game-board > table .cell.attackable > .disc

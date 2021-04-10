@@ -206,8 +206,7 @@ function startNewGame() {
   playerTable[O.WHITE] = makePlayer(whitePlayerType());
   stats.step = 0;
   stats.gameHistory = [];
-  var newGameTree = O.makeInitialGameTree();
-  placeBarrier(newGameTree.board);
+  var newGameTree = O.makeInitialGameTree(placeBarrier);
   shiftToNewGameTree(newGameTree, NoChessPlaced);
 }
 
@@ -217,12 +216,19 @@ function placeBarrier(board) {
   if (barrierType === "random-barrier") {
     var barrierNumberInput = $('#random-barrier-number').val();
     var barrierNumber = parseInt(barrierNumberInput);
+    console.log('Your random barrier number input: ' + barrierNumberInput);
     var boardSize = O.N * O.N;
+    var barrierDumpString = '';
     for (var i = 0; i < barrierNumber; ++i) {
       var nextBarrierLocation = Math.floor(Math.random() * boardSize);
       for (; board[nextBarrierLocation] != O.EMPTY; nextBarrierLocation = Math.floor(Math.random() * boardSize)) {}
+      var row = Math.floor(nextBarrierLocation / O.N) + 1;
+      var col = 'abcdefgh'[(nextBarrierLocation % O.N)];
+      console.log('Your #' + i + ' random barrier location: ' + row + col);
+      barrierDumpString += '' + row + col + ',';
       board[nextBarrierLocation] = O.BARRIER;
     }
+    console.log('Your barrier dump string: ' + barrierDumpString);
   } else if (barrierType === "specific-barrier") {
     var barrierLocationInput = $('#barrier-location').val();
     console.log('Your barrier location input: ' + barrierLocationInput);

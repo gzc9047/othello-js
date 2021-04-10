@@ -82,8 +82,10 @@ var othello = {};
     return board;
   }
 
-  function makeInitialGameTree() {
-    return makeGameTree(makeInitialGameBoard(), BLACK, false, 1);
+  function makeInitialGameTree(barrierPlacer) {
+    var board = makeInitialGameBoard();
+    barrierPlacer(board);
+    return makeGameTree(board, BLACK, false, 1);
   }
 
   function makeGameTree(board, player, wasPassed, nest) {
