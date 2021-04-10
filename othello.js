@@ -59,6 +59,7 @@ var othello = {};
   var EMPTY = 'empty';
   var WHITE = 'white';
   var BLACK = 'black';
+  var BARRIER = 'barrier';
 
   function ix(x, y) {
     return x + y * N;
@@ -165,7 +166,8 @@ var othello = {};
     });
   }
 
-  var listAttackingMoves = N === 8 ? listAttackingMoves8 : listAttackingMovesN;
+  // var listAttackingMoves = N === 8 ? listAttackingMoves8 : listAttackingMovesN;
+  var listAttackingMoves = listAttackingMovesN;
 
   function nextPlayer(player) {
     return player === BLACK ? WHITE : BLACK;
@@ -939,6 +941,10 @@ var othello = {};
     }
   }
 
+  function placeBarrier(barrierNumber) {
+
+  }
+
 
 
 
@@ -949,6 +955,7 @@ var othello = {};
   othello.EMPTY = EMPTY;
   othello.WHITE = WHITE;
   othello.BLACK = BLACK;
+  othello.BARRIER = BARRIER;
   othello.nextPlayer = nextPlayer;
   othello.registerAI = registerAI;
   othello.N = N;

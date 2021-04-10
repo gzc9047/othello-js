@@ -28,6 +28,9 @@
       <div id="message"></div>
       <div id="console"></div>
       <div id="stats"></div>
+      <div id="rollback">
+        <button id="rollback-one-step-button" class="btn" type="button">Rollback one step</button>
+      </div>
       <div id="preference-pane">
         <div id="player-type-forms">
           <label>
@@ -57,7 +60,7 @@
               <option value="human">Human</option>
               <option value="simpleCount-131072">AI (Type A; try to get many disks)</option>
               <option value="basic-131072">AI (Type B; try to own corner positions)</option>
-              <option value="better-131072" selected>AI (Type C; try to own corner positions carefully)</option>
+              <option value="better-131072">AI (Type C; try to own corner positions carefully)</option>
               <option value="moveCount-131072">AI (Type D; Prioritize number of moves)</option>
               <option value="moveCountAndPositions-131072">AI (Type E; Prioritize number of moves and positions)</option>
               <option value="mcts-128">AI (Type M-128; Monte Carlo Tree Search with 128 iterations)</option>
@@ -69,11 +72,24 @@
               <option value="mcts-1024-old">AI (Type M-1024/old; Monte Carlo Tree Search with 1024 iterations)</option>
               <option value="pmc-100-m">AI (Type PM-100/m; Primitive Monte Carlo with 100 iterations for each move)</option>
               <option value="pmc-200-m">AI (Type PM-200/m; Primitive Monte Carlo with 200 iterations for each move)</option>
-              <option value="pmc-1024-e">AI (Type PM-1024/e; Primitive Monte Carlo with 1024 iterations divided for each move)</option>
+              <option value="pmc-1024-e" selected>AI (Type PM-1024/e; Primitive Monte Carlo with 1024 iterations divided for each move)</option>
             </select>
           </label>
         </div>
         <button id="swap-player-types-button" class="btn" type="button">⇅</button>
+        <div>
+          <label>
+            Barrier number:
+            <select id="barrier-number">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5" selected>5</option>
+            </select>
+          </label>
+        </div>
         <div>
           <input id="new-ai-url" type="text" value="http://kana.github.io/othello-js/random-ai.js">
           <button id="add-new-ai-button" class="btn" type="button">Add new AI</button>

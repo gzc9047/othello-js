@@ -84,6 +84,11 @@
 {
   background: #000;
 }
+#game-board > table .cell.barrier > .disc
+{
+  background: rgb(255, 0, 0);
+  border-radius: 0em;
+}
 #game-board > table .cell.attackable > .disc
 {
   opacity: 0.2;
