@@ -3,6 +3,9 @@ var othello = {};
 (function () {
   'use strict';
 
+  var NoChessPlaced = { x: -1, y: -1 };
+  var NoAttachedCell = [];
+
   // Utilities {{{1
 
   function memoize(f) {
@@ -85,13 +88,15 @@ var othello = {};
   function makeInitialGameTree(barrierPlacer) {
     var board = makeInitialGameBoard();
     barrierPlacer(board);
-    return makeGameTree(board, BLACK, false, 1);
+    return makeGameTree(board, BLACK, false, 1, NoChessPlaced, NoAttachedCell);
   }
 
-  function makeGameTree(board, player, wasPassed, nest) {
+  function makeGameTree(board, player, wasPassed, nest, lastChessLocation, attachedCells) {
     return {
       board: board,
       player: player,
+      lastChessLocation: lastChessLocation,
+      attachedCells: attachedCells,
       moves: listPossibleMoves(board, player, wasPassed, nest)
     };
   }
@@ -113,7 +118,7 @@ var othello = {};
       return [{
         isPassingMove: true,
         gameTreePromise: delay(function () {
-          return makeGameTree(board, nextPlayer(player), true, nest + 1);
+          return makeGameTree(board, nextPlayer(player), true, nest + 1, NoChessPlaced, NoAttachedCell);
         })
       }];
     else
@@ -130,13 +135,16 @@ var othello = {};
           moves.push({
             x: x,
             y: y,
+            vulnerableCells: vulnerableCells,
             gameTreePromise: (function (x, y, vulnerableCells) {
               return delay(function () {
                 return makeGameTree(
                   makeAttackedBoard(board, x, y, vulnerableCells, player),
                   nextPlayer(player),
                   false,
-                  nest + 1
+                  nest + 1,
+                  { x: x, y: y },
+                  vulnerableCells
                 );
               });
             })(x, y, vulnerableCells)
@@ -161,7 +169,9 @@ var othello = {};
             makeAttackedBoard(board, x, y, vulnerableCells, player),
             nextPlayer(player),
             false,
-            nest + 1
+            nest + 1,
+            { x: x, y: y },
+            vulnerableCells
           );
         })
       };
@@ -968,6 +978,8 @@ var othello = {};
   othello.makeAI = makeAI;
   othello.makeInitialGameTree = makeInitialGameTree;
   othello.nameMove = nameMove;
+  othello.NoChessPlaced = NoChessPlaced;
+  othello.NoAttachedCell = NoAttachedCell;
 
 
 

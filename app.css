@@ -109,3 +109,6 @@
 .newest:before {
 	background: #f00;
 }
+.reversal:before {
+  background: #66c;
+}

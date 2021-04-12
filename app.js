@@ -2,11 +2,10 @@
 var stats = {};
 var playerTable = {};
 var O = othello;
-var NoChessPlaced = { x: -1, y: -1 };
 
 // UI {{{1
 
-function drawGameBoard(board, player, moves, currentChess) {
+function drawGameBoard(board, player, moves, currentChess, attachedCells) {
   var ss = [];
   var attackable = [];
   moves.forEach(function (m) {
@@ -31,6 +30,8 @@ function drawGameBoard(board, player, moves, currentChess) {
         ss.push('<span class="disc');
         if (currentChess.x == x && currentChess.y == y) {
           ss.push(' newest');
+        } else if (attachedCells.includes(O.ix(x, y))) {
+          ss.push(' reversal');
         }
         ss.push('"></span>');
         ss.push('</td>');
@@ -63,13 +64,13 @@ function setUpUIToChooseMove(gameTree) {
         $('<input type="button" class="btn">')
         .val(O.nameMove(m))
         .click(function () {
-          shiftToNewGameTree(O.force(m.gameTreePromise), NoChessPlaced);
+          shiftToNewGameTree(O.force(m.gameTreePromise));
         })
       );
     } else {
       $('#cell_' + m.x + '_' + m.y)
       .click(function () {
-        shiftToNewGameTree(O.force(m.gameTreePromise), {x: m.x, y: m.y});
+        shiftToNewGameTree(O.force(m.gameTreePromise));
       });
     }
   });
@@ -93,7 +94,7 @@ function chooseMoveByAI(gameTree, ai) {
       var delta = end - start;
       setTimeout(
         function () {
-          shiftToNewGameTree(newGameTree, {x: move.x, y: move.y});
+          shiftToNewGameTree(newGameTree);
         },
         Math.max(minimumDelayForAI - delta, 1)
       );
@@ -136,10 +137,10 @@ function swapPlayerTypes() {
   $('#white-player-type').val(t).change();
 }
 
-function shiftToNewGameTree(gameTree, currentChess) {
+function shiftToNewGameTree(gameTree) {
   stats.gameHistory[stats.step] = gameTree;
   ++stats.step;
-  drawGameBoard(gameTree.board, gameTree.player, gameTree.moves, currentChess);
+  drawGameBoard(gameTree.board, gameTree.player, gameTree.moves, gameTree.lastChessLocation, gameTree.attachedCells);
   resetUI();
   if (gameTree.moves.length === 0) {
     showWinner(gameTree.board);
@@ -157,7 +158,7 @@ function rollbackToStep(targetStep) {
   var newGameTree = stats.gameHistory[targetStep];
   stats.gameHistory = newGameHistory;
   stats.step = targetStep;
-  shiftToNewGameTree(newGameTree, NoChessPlaced)
+  shiftToNewGameTree(newGameTree)
 }
 
 function rollbackOneStep() {
@@ -207,7 +208,7 @@ function startNewGame() {
   stats.step = 0;
   stats.gameHistory = [];
   var newGameTree = O.makeInitialGameTree(placeBarrier);
-  shiftToNewGameTree(newGameTree, NoChessPlaced);
+  shiftToNewGameTree(newGameTree);
 }
 
 function placeBarrier(board) {
@@ -255,7 +256,7 @@ function placeBarrier(board) {
   $('#swap-player-types-button').click(function () {swapPlayerTypes();});
   $('#rollback-one-step-button').click(function () {rollbackOneStep();});
   resetGame();
-  drawGameBoard(O.makeInitialGameBoard(), '-', [], NoChessPlaced);
+  drawGameBoard(O.makeInitialGameBoard(), '-', [], O.NoChessPlaced, O.NoAttachedCell);
 
   //}}}
 })(othello);
