@@ -60,7 +60,11 @@ function drawGameBoard(board, player, moves, currentChess, attachedCells) {
   var stepLocationStrings = [];
   for (var i = 1; i < stats.step; ++i) {
     var lastChessLocation = stats.gameHistory[i].lastChessLocation;
-    stepLocationStrings.push(serializeChessLocation(lastChessLocation.x, lastChessLocation.y));
+    if (lastChessLocation.x == O.NoChessPlaced.x && lastChessLocation.y == O.NoChessPlaced.y) {
+      // ignore the "pass", the restore will understand and switch players.
+    } else {
+      stepLocationStrings.push(serializeChessLocation(lastChessLocation.x, lastChessLocation.y));
+    }
   }
 
   $('#game-board').html(ss.join(''));
@@ -185,12 +189,13 @@ function rollbackOneStep() {
     if (stats.step >= 2) {
       rollbackToStep(stats.step - 2);
     }
-  } else {
+  } else if (blackPlayerType() === 'human' || whitePlayerType() === 'human') {
     // Rollback AI step doesn't make any sense, so we rollback the last two step (oppenent and myself), step should -3.
     if (stats.step >= 3) {
       rollbackToStep(stats.step - 3);
     }
   }
+  // Don't rollback AI gaming, let the computer enjoy it.
 }
 
 function recordStat(board) {
@@ -225,23 +230,48 @@ function startNewGame() {
   stats.step = 0;
   stats.gameHistory = [];
   var newGameTree = O.makeInitialGameTree(placeBarrier);
-  shiftToNewGameTree(newGameTree);
-  restoreGameIfNeeded();
-}
-
-function restoreGameIfNeeded() {
   var gameType = $('input[name="game-type"]:checked').val();
   if (gameType === "restore-game") {
-    var historyStepInput = $('#history-step').val();
-    console.log('Your history step input: ' + historyStepInput);
-    var stepLocations = [];
-    var stepLocationStrings = historyStepInput.split(',');
-    stepLocationStrings.forEach(function (locationString) {
-      var gameTree = stats.gameHistory[stats.step - 1];
-      var chessLocation = deserializeChessLocation(locationString);
+    restoreGame(newGameTree);
+  } else {
+    shiftToNewGameTree(newGameTree);
+  }
+}
+
+function restoreGame(initialGameTree) {
+  var historyStepInput = $('#history-step').val();
+  console.log('Your history step input: ' + historyStepInput);
+  if (historyStepInput === "") {
+    // No history to restore.
+    return;
+  }
+  var stepLocations = [];
+  var stepLocationStrings = historyStepInput.split(',');
+  stepLocationStrings.forEach(function (locationString) {
+    var chessLocation = deserializeChessLocation(locationString);
+    stepLocations.push(chessLocation);
+  });
+  // In current architecture,  AI will auto place after chess is placed, before I found a good way to suppress it,
+  // temporary use human player instead,
+  playerTable[O.BLACK] = makePlayer('human');
+  playerTable[O.WHITE] = makePlayer('human');
+  shiftToNewGameTree(initialGameTree);
+  for (var i = 0; i < stepLocations.length;) {
+    var gameTree = stats.gameHistory[stats.step - 1];
+    if (gameTree.moves[0].isPassingMove) {
+      shiftToNewGameTree(O.force(gameTree.moves[0].gameTreePromise));
+    } else {
+      if (i == stepLocations.length - 1) {
+        // restore the human|AI setting
+        playerTable[O.BLACK] = makePlayer(blackPlayerType());
+        playerTable[O.WHITE] = makePlayer(whitePlayerType());
+      }
+      var chessLocation = stepLocations[i];
+      console.log('Restoring step: ' + serializeChessLocation(chessLocation.x, chessLocation.y) + ' on stats.step: ' + stats.step);
       var matchedMove = findMatchedMove(gameTree.moves, chessLocation);
       shiftToNewGameTree(O.force(matchedMove.gameTreePromise));
-    });
+      ++i;
+    }
   }
 }
 
