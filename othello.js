@@ -233,6 +233,7 @@ var othello = {};
     n[BLACK] = 0;
     n[WHITE] = 0;
     n[EMPTY] = 0;
+    n[BARRIER] = 0;
     for (var i = 0; i < board.length; i++)
       n[board[i]]++;
 
@@ -580,6 +581,7 @@ var othello = {};
       ct[player] = 1;
       ct[opponent] = -1;
       ct[EMPTY] = 0;
+      ct[BARRIER] = 0;
       var s = 0;
       for (var i = 0; i < board.length; i++)
         s += ct[board[i]] * wt[i];

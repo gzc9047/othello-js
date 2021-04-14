@@ -5,6 +5,16 @@ var O = othello;
 
 // UI {{{1
 
+function serializeChessLocation(x, y) {
+  return ('abcdefghijklmnopqrstuvwxyz'[x]) + '' + (y + 1);
+}
+
+function deserializeChessLocation(locationString) {
+  var row = parseInt(locationString.replace(/\D/g, '')) - 1;
+  var col = locationString.replace(/\d+/g, '').charCodeAt(0) - 97;
+  return { x: col, y: row };
+}
+
 function drawGameBoard(board, player, moves, currentChess, attachedCells) {
   var ss = [];
   var attackable = [];
@@ -47,8 +57,15 @@ function drawGameBoard(board, player, moves, currentChess, attachedCells) {
   }
   ss.push('</table>');
 
+  var stepLocationStrings = [];
+  for (var i = 1; i < stats.step; ++i) {
+    var lastChessLocation = stats.gameHistory[i].lastChessLocation;
+    stepLocationStrings.push(serializeChessLocation(lastChessLocation.x, lastChessLocation.y));
+  }
+
   $('#game-board').html(ss.join(''));
   $('#current-player-name').text(player);
+  $('#game-dump-step').text('Steps: ' + stepLocationStrings.join(','));
 }
 
 function resetUI() {
@@ -209,39 +226,64 @@ function startNewGame() {
   stats.gameHistory = [];
   var newGameTree = O.makeInitialGameTree(placeBarrier);
   shiftToNewGameTree(newGameTree);
+  restoreGameIfNeeded();
+}
+
+function restoreGameIfNeeded() {
+  var gameType = $('input[name="game-type"]:checked').val();
+  if (gameType === "restore-game") {
+    var historyStepInput = $('#history-step').val();
+    console.log('Your history step input: ' + historyStepInput);
+    var stepLocations = [];
+    var stepLocationStrings = historyStepInput.split(',');
+    stepLocationStrings.forEach(function (locationString) {
+      var gameTree = stats.gameHistory[stats.step - 1];
+      var chessLocation = deserializeChessLocation(locationString);
+      var matchedMove = findMatchedMove(gameTree.moves, chessLocation);
+      shiftToNewGameTree(O.force(matchedMove.gameTreePromise));
+    });
+  }
+}
+
+function findMatchedMove(moves, chessLocation) {
+  for (var i = 0; i < moves.length; ++i) {
+    if (chessLocation.x == moves[i].x && chessLocation.y == moves[i].y) {
+      return moves[i];
+    }
+  }
+  return null;
 }
 
 function placeBarrier(board) {
-  var barrierType = $('input[name="barrier-type"]:checked').val();
-  console.log('Your barrier type: ' + barrierType);
-  if (barrierType === "random-barrier") {
+  var gameType = $('input[name="game-type"]:checked').val();
+  console.log('Your game type: ' + gameType);
+  if (gameType === "random-barrier") {
     var barrierNumberInput = $('#random-barrier-number').val();
     var barrierNumber = parseInt(barrierNumberInput);
-    console.log('Your random barrier number input: ' + barrierNumberInput);
     var boardSize = O.N * O.N;
     var barrierDumpString = '';
+    var barrierLocationStrings = [];
     for (var i = 0; i < barrierNumber; ++i) {
       var nextBarrierLocation = Math.floor(Math.random() * boardSize);
       for (; board[nextBarrierLocation] != O.EMPTY; nextBarrierLocation = Math.floor(Math.random() * boardSize)) {}
-      var row = Math.floor(nextBarrierLocation / O.N) + 1;
-      var col = 'abcdefgh'[(nextBarrierLocation % O.N)];
-      console.log('Your #' + i + ' random barrier location: ' + row + col);
-      barrierDumpString += '' + row + col + ',';
+      var row = Math.floor(nextBarrierLocation / O.N);
+      var col = (nextBarrierLocation % O.N);
+      barrierLocationStrings.push(serializeChessLocation(col, row));
       board[nextBarrierLocation] = O.BARRIER;
     }
-    console.log('Your barrier dump string: ' + barrierDumpString);
-  } else if (barrierType === "specific-barrier") {
+    $('#game-dump-barrier').text('Barrier setting: ' + barrierLocationStrings.join(','));
+  } else if (gameType === "restore-game") {
     var barrierLocationInput = $('#barrier-location').val();
     console.log('Your barrier location input: ' + barrierLocationInput);
     var locationStrings = barrierLocationInput.split(',');
     locationStrings.forEach(function (locationString) {
-      var row = parseInt(locationString.replace(/\D/g, '')) - 1;
-      var col = locationString.replace(/\d+/g, '').charCodeAt(0) - 97;
-      var barrierLocation = O.ix(col, row);
+      var chessLocation = deserializeChessLocation(locationString);
+      var barrierLocation = O.ix(chessLocation.x, chessLocation.y);
       if (board[barrierLocation] === O.EMPTY) {
         board[barrierLocation] = O.BARRIER;
       }
     });
+    $('#game-dump-barrier').text('Barrier setting: ' + barrierLocationInput);
   }
 }
 
