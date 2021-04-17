@@ -231,7 +231,9 @@ function startNewGame() {
   stats.gameHistory = [];
   var newGameTree = O.makeInitialGameTree(placeBarrier);
   var gameType = $('input[name="game-type"]:checked').val();
-  if (gameType === "restore-game") {
+  var historyStepInput = $('#history-step').val();
+  console.log('Your history step input: ' + historyStepInput);
+  if (gameType === "restore-game" && historyStepInput !== "") {
     restoreGame(newGameTree);
   } else {
     shiftToNewGameTree(newGameTree);
@@ -239,12 +241,6 @@ function startNewGame() {
 }
 
 function restoreGame(initialGameTree) {
-  var historyStepInput = $('#history-step').val();
-  console.log('Your history step input: ' + historyStepInput);
-  if (historyStepInput === "") {
-    // No history to restore.
-    return;
-  }
   var stepLocations = [];
   var stepLocationStrings = historyStepInput.split(',');
   stepLocationStrings.forEach(function (locationString) {
